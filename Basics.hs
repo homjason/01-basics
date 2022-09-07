@@ -70,11 +70,34 @@ Try clicking on "Evaluate..." below.
 -}
 
 -- >>> 3 * (4 + 5)
+-- 27
+
+-- >>> 'a':'b':'c':[]
+-- "abc"
+
+-- >>> ['a','b']:'c'
+-- Couldn't match expected type ‘[[Char]]’ with actual type ‘Char’
+
+-- >>> 'a':'b':'c':[]
+-- "abc"
+
+-- >>> 'a':'b':['c']
+-- "abc"
+
+-- >>> 'a' : "bc"
+-- "abc"
+
+-- >>> "a" : "b" : "c"
+-- Couldn't match type ‘Char’ with ‘[Char]’
+-- Expected: [String]
+--   Actual: String
 
 {-
 A Haskell module (like this one) is a list of *definitions*. These definitions
 allow us to give names to Haskell expressions.
 -}
+-- use :r to refresh ghci
+-- to exit, either do :q or ctrl + d
 
 ex :: Integer
 ex = 3 * (4 + 5)
@@ -139,6 +162,10 @@ It is good style to annotate the type of *every* declaration in a Haskell
 program. This helps with error messages, as Haskell operators, like `*`, and
 constants like '31', are often overloaded.
 
+Overloaded when things have different types. Constants have different types.
+:t 31 becomes Num p => p (AKA 31 is a number - don't say what type of numbers like int, or double)
+If you want a constant of a particular type, you should tell Haskell. Lots of things have lots of different types.
+
 Elements of Haskell
 -------------------
 
@@ -189,6 +216,15 @@ this basic type is that there is only *one* value with type `()`.
 -}
 
 -- >>> () :: ()            -- 'unit' (both value and type have the same syntax)
+-- ()
+
+{-
+This is both a type and value of the type. No other values of type unit except (). The purpose is to be a placeholder for nothing.
+In Java, these are void methods. Haskell doesn't really have functions that return nothing. But to simulate returning noti=hing, we define
+().
+
+IO a vs IO (). Think of it as not returning from function that is doing stuff. You'll mainly see this in IO. It's not data - just a type with a single value.
+-}
 
 {-
 What is Abstraction?
@@ -389,7 +425,7 @@ Thus:
 -}
 
 -- >>> const (error "Here!") 4
--- 3
+-- 4
 
 {-
 We'll see more examples of laziness throughout the semester. Sometimes we use the word "strictness" to
@@ -1001,7 +1037,7 @@ clone :: a -> Int -> [a]
 We implement this function by recursion on the integer argument.
 -}
 
-clone x n = if n <= 0 then [] else x : clone x (n -1)
+clone x n = if n <= 0 then [] else x : clone x (n - 1)
 
 {-
 **Step 4**: Run the tests.
@@ -1057,8 +1093,8 @@ range :: Int -> Int -> [Int]
 {-
 **Step 3**: Define the function. This part is for you to do for your quiz.
 -}
-
-range i j = undefined
+-- order matters! TODO: Figure out how ordering works
+range i j = if i > j then [] else i : range (i + 1) j
 
 {-
 **Step 4**: Run the tests.
@@ -1090,6 +1126,21 @@ isGreeting "Hello" = True
 isGreeting "Bonjour" = True
 isGreeting "Guten Tag" = True
 isGreeting _ = False
+
+{-
+You can also do:
+isGreeting x =
+    case x of
+        "Hi" -> True
+        "Hello" -> True
+        _ -> False
+
+Usually you want to use case over if. Casing on a boolean is exactly an if.
+  f x = if x >=5 then x + 1 else x - 1
+  f x = case (x >= 5) of
+      True -> x + 1
+      False -> x - 1
+-}
 
 {-
 We can also work with lists more abstractly, for example determining if we have
@@ -1420,4 +1471,69 @@ a powerful idea which will re-occur throughout the semester.
 ----------------------------------------------
 For Penn students: There is a quiz associated with this module on Canvas. Please complete this quiz before the next class.
 
+-}
+
+{-
+In-Class Notes:
+# Syntax
+* What does the let syntax look like?
+let
+  define variables
+in
+  code where you use the variables
+
+* How does definition ordering work in haskell?
+normally: f(x,y,z)
+haskell:
+f :: Int -> Bool -> Int -> Bool
+Functions can take in other functions.
+
+-}
+math :: Int -> Int
+math x =
+  let y = x + 2
+   in y + 3
+
+g :: Int -> Int
+g x = f x * 2
+
+-- function order doesn't matter in haskell. It'll evaluate once it's called.
+-- normally you want to put functions in definition order, but you don't necessarily need to.
+
+f :: Int -> Int
+f x = x + 1
+
+{-
+Unused variable name convention
+Underscore prefix marks that you may not use it. Wildcard to show that you're not going to use it. Wildcard can be used anywhere where you would assign
+something. It indicates that you don't care.
+`_ <- putStr` is the same as just `putStr`
+implicit order of top to bottom.
+
+No such thing as typecasting but you can define overloading.
+
+-}
+
+{-
+# Pattern Matching on Lists
+[Int]
+Two kinds of values: Empty list [] :: [Int]
+The other type of list is the type build with the cons constructor.
+x :: Int
+xs :: [Int]
+-----------------
+x : xs
+
+1 : []          == [1]
+1 : (2 : [])    == [1, 2]
+
+When defining a function that takes lists as a function, we just have to cover those two cases.
+
+isEmpty :: [Int] -> Bool
+isEmpty [] = True
+isEmpty (x : xs) = False
+
+isLengthAtLeastTwo :: [Int] -> Bool
+isLengthAtLeastTwo (x : (y : zs)) = True
+isLengthAtLeastTwo _ = False
 -}
